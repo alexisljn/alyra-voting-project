@@ -294,6 +294,8 @@ contract Voting is Ownable {
     function getVoterVote(address _address) external view returns(Proposal memory) {
         require(msg.sender == owner() || _voters[msg.sender].isRegistered, "You should be owner or voter to see voter's vote");
         
+        require(_address != address(0), "0 address is invalid");
+
         Voter memory voter = _voters[_address];
         
         require(voter.isRegistered, "Voter not found");
