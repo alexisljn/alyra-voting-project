@@ -172,7 +172,7 @@ contract Voting is Ownable {
                 _tiedProposals.push(proposalsId[i]);
 
                 // Check if current winningProposal ("main" proposal of the tie) is already in the array (in case of more than two tied proposals)
-                if (_tiedProposals[_tiedProposals.length-1] != tempWinningProposalId) {
+                if (_tiedProposals.length == 1 || _tiedProposals[1] != tempWinningProposalId) {
                     _tiedProposals.push(tempWinningProposalId);
                 }
             }
