@@ -207,32 +207,8 @@ contract Voting is Ownable {
             voter.votedProposalId = 0;
         }
 
-        // Reset proposal Workflow
-        Proposal[] memory proposalsToKeep = new Proposal[](_tiedProposals.length);
-        
-        // Keep tied proposals in memory array
-        for (uint i = 0; i < _tiedProposals.length; i++) {
-            proposalsToKeep[i] = proposals[_tiedProposals[i]];
-        }
-
-        // Delete all proposals from mapping
-        for (uint i = 0; i < proposalsId.length; i++) {
-            delete proposals[proposalsId[i]];
-        }
-
-        // Affect proposalsId storage array to _tiedProposals
-        proposalsId = _tiedProposals;
-  
-        delete _tiedProposals;   
-
-        // Reset proposal properties and store them into mapping
-        for (uint i = 0; i < proposalsId.length; i++) {
-            Proposal memory proposalToKeep = proposalsToKeep[i];
-            
-            proposalToKeep.voteCount = 0;
-            
-            proposals[proposalsId[i]] = proposalToKeep;
-        }
+        // Reset proposals
+        _keepTiedProposals();
 
         _voteStatus = WorkflowStatus.VotingSessionStarted;
 
@@ -300,6 +276,8 @@ contract Voting is Ownable {
         require(_voteStatus == WorkflowStatus.CountingEquality, "Winning proposal can only be randomly picked if there is an equality");
 
         assert(_tiedProposals.length > 0);
+
+        _keepTiedProposals();
 
         uint randomIndex = uint(keccak256(abi.encodePacked(block.timestamp, block.number, block.basefee))) % _tiedProposals.length;
 
