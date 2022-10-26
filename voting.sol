@@ -16,12 +16,12 @@ contract Voting is Ownable {
     address[] public votersId;
 
     mapping(uint => Proposal) public proposals;
-    
+
     /* @dev Helper variable to handle easily CRUD in proposals mapping */
     uint[] public proposalsId;
 
     uint private _winningProposalId;
-    
+
     /* @dev Store the proposals that have equal vote count */
     uint[] private _tiedProposals;
 
@@ -52,11 +52,11 @@ contract Voting is Ownable {
     }
 
     event VoterRegistered(address voterAddress);
-    
+
     event WorkflowStatusChange(WorkflowStatus previousStatus, WorkflowStatus newStatus);
 
     event ProposalRegistered(uint proposalId);
-    
+
     event Voted(address voter, uint proposalId);
 
     event NewBallotPrepared();
@@ -80,9 +80,9 @@ contract Voting is Ownable {
         require(_voteStatus == WorkflowStatus.RegisteringVoters, "Registering new voters is not allowed for the current voting");
 
         require(_address != address(0), "0 address is invalid");
-        
+
         require(!_voters[_address].isRegistered, "Voter is already registred");
-    
+
         _voters[_address] = Voter(true, false, 0);
 
         votersId.push(_address);
@@ -96,7 +96,7 @@ contract Voting is Ownable {
     */
     function setWorkflowStatus(WorkflowStatus _status) external onlyOwner {
         require(_status != WorkflowStatus.CountingEquality, "Counting equality can only be trigger by the contract itself");
-        
+
         require(_status != WorkflowStatus.VotesTallied, "Votes tallied can only be trigger by the contract itself");
 
         WorkflowStatus previousStatus = _voteStatus;
@@ -112,7 +112,7 @@ contract Voting is Ownable {
     */
     function addProposal(string calldata description) external onlyVoter {
         require(_voteStatus == WorkflowStatus.ProposalsRegistrationStarted, "Proposal cannot be submitted for the current voting");
-        
+
         require(keccak256(abi.encodePacked(description)) != keccak256(abi.encodePacked("")), "Proposal description cannot be empty");
 
         uint proposalId = uint(keccak256(abi.encodePacked(description, block.timestamp, msg.sender)));
@@ -123,9 +123,9 @@ contract Voting is Ownable {
 
         emit ProposalRegistered(proposalId);
     }
-    
+
     /*
-    * @notice Allows voter to vote for a proposal 
+    * @notice Allows voter to vote for a proposal
     * @param proposalId The id of the proposal the voter wants to vote for
     */
     function vote(uint proposalId) external onlyVoter {
@@ -195,7 +195,7 @@ contract Voting is Ownable {
     */
     function prepareNewBallot() external onlyOwner {
         require(_voteStatus == WorkflowStatus.CountingEquality, "New ballot can only be prepared for an equality");
-        
+
         // Reset voters attribute
         for (uint i = 0; i < votersId.length; i++) {
             Voter storage voter = _voters[votersId[i]];
@@ -242,9 +242,9 @@ contract Voting is Ownable {
         require(_voteStatus == WorkflowStatus.VotesTallied, "Resetting voting is allowed only when votes have been counted");
 
         winningProposalHistory.push(proposals[_winningProposalId]);
-        
+
         delete _winningProposalId;
-        
+
         for(uint i = 0; i < proposalsId.length; i++) {
             delete proposals[proposalsId[i]];
         }
@@ -261,7 +261,7 @@ contract Voting is Ownable {
     }
 
     /*
-    * @notice Allows administrator to pick randomly a proposal among those which has same vote count. 
+    * @notice Allows administrator to pick randomly a proposal among those which has same vote count.
     * @notice Should be used when no proposal won in multiple ballots.
     */
     function pickWinnerRandomly() external onlyOwner {
@@ -283,7 +283,7 @@ contract Voting is Ownable {
     */
     function getWinner() external view returns(Proposal memory) {
         require(_voteStatus == WorkflowStatus.VotesTallied, "Voting is not over or has not began");
-        
+
         return proposals[_winningProposalId];
     }
 
@@ -293,16 +293,16 @@ contract Voting is Ownable {
     */
     function getVoterVote(address _address) external view returns(Proposal memory) {
         require(msg.sender == owner() || _voters[msg.sender].isRegistered, "You should be owner or voter to see voter's vote");
-        
+
         require(_address != address(0), "0 address is invalid");
 
         Voter memory voter = _voters[_address];
-        
+
         require(voter.isRegistered, "Voter not found");
 
         return proposals[voter.votedProposalId];
     }
-    
+
     /*
     * @notice Allows everybody to get full list of proposalsId in one call.
     * @dev Helper function
