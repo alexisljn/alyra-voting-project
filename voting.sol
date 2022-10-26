@@ -162,6 +162,10 @@ contract Voting is Ownable {
             if (currentProposal.voteCount > winningProposal.voteCount) {
                 tempWinningProposalId = proposalsId[i];
 
+                if (_tiedProposals.length > 0) {
+                    delete _tiedProposals;
+                }
+
             } else if (currentProposal.voteCount == winningProposal.voteCount && winningProposal.voteCount > 0) { // Equality
                 // Reset array if new tie has more votes than previous one
                 if (_tiedProposals.length > 0 && winningProposal.voteCount > proposals[_tiedProposals[_tiedProposals.length-1]].voteCount) {
