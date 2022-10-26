@@ -264,6 +264,34 @@ contract Voting is Ownable {
         emit VotingReset();
     }
 
+    function _keepTiedProposals() private {
+        Proposal[] memory proposalsToKeep = new Proposal[](_tiedProposals.length);
+
+        // Keep tied proposals in memory array
+        for (uint i = 0; i < _tiedProposals.length; i++) {
+            proposalsToKeep[i] = proposals[_tiedProposals[i]];
+        }
+
+        // Delete all proposals from mapping
+        for (uint i = 0; i < proposalsId.length; i++) {
+            delete proposals[proposalsId[i]];
+        }
+
+        // Affect proposalsId storage array to _tiedProposals
+        proposalsId = _tiedProposals;
+
+        delete _tiedProposals;
+
+        // Reset proposal properties and store them into mapping
+        for (uint i = 0; i < proposalsId.length; i++) {
+            Proposal memory proposalToKeep = proposalsToKeep[i];
+
+            proposalToKeep.voteCount = 0;
+
+            proposals[proposalsId[i]] = proposalToKeep;
+        }
+    }
+
     /*
     * @notice Allows administrator to pick randomly a proposal among those which has same vote count.
     * @notice Should be used when no proposal won in multiple ballots.
